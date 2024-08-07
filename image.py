@@ -25,7 +25,7 @@ def set_calibration(cam_name: str, calibration: float):
     cal[str(cam_name)] = calibration
 
 
-def _orientImage(
+def orientImage(
     data: np.ndarray, XOrient: str, YOrient: str, isRotated: bool = None
 ) -> np.ndarray:
     """Flips/rotates a raw image to match the orientation shown by the profMon.
@@ -55,7 +55,7 @@ def _orientImage(
     return newData
 
 
-def _specialFlips(camera: str, data: np.ndarray, isRotated=None) -> np.ndarray:
+def specialFlips(camera: str, data: np.ndarray, isRotated=None) -> np.ndarray:
     """Rotates a raw image to match the profMon orientation if the isRotated PV is not present.
 
     At one point in time, the rotation of certain cameras as hardcoded in to the profMon GUI.
@@ -672,8 +672,8 @@ class DAQ(IMAGE):
             isRotated = self.meta["IS_ROTATED"]
         else:
             isRotated = None
-        data = _orientImage(data, XOrient, YOrient, isRotated)
-        data = _specialFlips(self.camera, data, isRotated)
+        data = orientImage(data, XOrient, YOrient, isRotated)
+        data = specialFlips(self.camera, data, isRotated)
         return Image.fromarray(data)
 
     def plot_dataset_text(self, ax):
