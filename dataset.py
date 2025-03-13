@@ -1,11 +1,12 @@
-import os
 import datetime
 import math
-import numpy as np
-import scipy
-import matplotlib.pyplot as plt
+import os
+
 import matplotlib.animation as animation
 import matplotlib.gridspec as gridspec
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy
 
 import image
 
@@ -84,8 +85,9 @@ class DATASET:
         self.images = self._data["images"]
         # Scalar data and common indexes
         self.common_index = self._data["scalars"]["common_index"]
+        self.python_common_index = self.common_index - 1
         self.N = len(self.common_index)
-        self.common_stepIndex = self._data["scalars"]["steps"][self.common_index - 1]
+        self.common_stepIndex = self._data["scalars"]["steps"][self.python_common_index]
         if len(self.scan_vals) == 0:
             self.x = None
         else:
@@ -122,14 +124,14 @@ class DATASET:
         PV = PV.replace(":", "_")
         PV = PV.replace(".", "_")
         try:
-            return self._data["scalars"][list][PV][self.common_index - 1]
+            return self._data["scalars"][list][PV][self.python_common_index]
         except IndexError:
             # The scalar array probably has too few shots
             a = np.empty(self.N)
             a[:] = np.nan
             data = self._data["scalars"][list][PV]
-            sel = (self.common_index - 1) < len(data)
-            a[sel] = data[self.common_index[sel] - 1]
+            sel = (self.python_common_index) < len(data)
+            a[sel] = data[self.python_common_index[sel]]
             return a
 
     def getRawScalar(self, list: str, PV: str) -> np.ndarray:
@@ -150,14 +152,15 @@ class DATASET:
             ind: The index of the image to be retrieved.
         """
         step = self.common_stepIndex[ind]
-        common_index = self.pulseID[camera + "common_index"][ind]
+        common_index = self.images[camera]["common_index"][ind]
+        python_common_index = common_index - 1
         if self.HDF5:
             image_path = self.images[camera]["loc"]
             filename = os.path.basename(image_path)
-            ind = common_index - 1 - (step - 1) * self.params["n_shot"]
+            ind = python_common_index - (step - 1) * self.params["n_shot"]
             return image.HDF5_DAQ(camera, self, filename, ind, step)
         else:
-            image_path = self.images[camera]["loc"][common_index - 1]
+            image_path = self.images[camera]["loc"][python_common_index]
             filename = os.path.basename(image_path)
             ind = int(image_path[-8:-4])
             return image.DAQ(camera, self, filename, ind, step)
@@ -302,7 +305,7 @@ class DATASET:
                 # Filter out outliers
                 keepSel = (step_data >= lower_bound) & (step_data <= upper_bound)
                 filtered_data = step_data[keepSel]
-                outliers = np.append(outliers, index[steps == step][~keepSel])
+                outliers = np.append(outliers, index[stepSel][~keepSel])
                 outlier += len(step_data) - len(filtered_data)
 
                 # Calculate statistics for the filtered data
@@ -603,7 +606,7 @@ class DATASET:
             clim: A tuple (vmin, vmax) to set the color limits for the images. Default is None.
             background_subtraction: Whether to perform background subtraction on the images. Default is True.
         """
-        N = len(self.common_index)
+        N = self.N
         im = self.getImage(cam, 0 + offset)
         bkgd = self.getImageBackground(cam)
         if background_subtraction:

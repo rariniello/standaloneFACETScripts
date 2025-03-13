@@ -1,13 +1,14 @@
-import numpy as np
-from PIL import Image
-from scipy import ndimage
+import os
+
 import h5py
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-import scipy.io
-import os
+import numpy as np
 import requests
+import scipy.io
+from PIL import Image
+from scipy import ndimage
+from scipy.optimize import curve_fit
 
 import analysis as an
 
@@ -387,12 +388,12 @@ class IMAGE:
         fg, fity = an.fit_gaussian(self.yp, yProj, (y0, A0y, 50, 0.0), maxfev=maxfev)
         return np.array([fitx[0], fity[0]])
 
-    def calculate_energy(self) -> float:
+    def calculate_sum(self) -> float:
         """Returns the total sum of all the pixels."""
         return np.sum(self.data)
 
     def get_center_image(self, strategy: str, o: int, **kwargs):
-        """Centers the image by non-uniformaly padding it. Meta will no longer match class attributes.
+        """Centers the image by non-uniformly padding it. Meta will no longer match class attributes.
 
         Args:
             strategy: Strategy for centering the image (e.g., 'cm', 'max', 'mask', 'fit', 'projFit', 'external').
@@ -453,6 +454,8 @@ class IMAGE:
         """
         width = 4.85
         height = 0.8 * self.height / self.width * width
+        if height > 4.85:
+            pass
         fig = plt.figure(figsize=(width, height), dpi=300)
         ax = plt.subplot()
         if cal:
