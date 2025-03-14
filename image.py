@@ -748,12 +748,24 @@ class DAQ(IMAGE):
 class HDF5_DAQ(DAQ):
     """An image taken by one of the FACET-II camera and saved as part of an HDF5 dataset."""
 
-    def _load_image(self):
+    def load_image(self):
+        """Load an image from a given data set.
+
+        Returns
+        -------
+        image : obj
+            Pillow image object from the hdf5.
+        """
         self.path = os.path.join(self.dataset.datasetPath, "images", self.camera)
         name = os.path.join(self.path, self.filename)
+        common_index = self.dataset.images[self.camera]["common_index"][self.ind]
+        python_common_index = common_index - 1
+        pid = self.dataset.images[self.camera]["pid"][python_common_index]
         f = h5py.File(name, "r")
-        data = f["entry/data/data"][self.step - 1, self.ind]
+        pids = f["entry/instrument/NDAttributes/NDArrayUniqueId"]
+        ind = np.where(pids == pid)[0][0]
+        data = f["entry/data/data"][ind]
         image = Image.fromarray(data)
         data = np.array(image, dtype="float")
-        image = self._orientImage(data)
+        image = self.orientImage(data)
         return image

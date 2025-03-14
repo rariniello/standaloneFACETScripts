@@ -103,6 +103,8 @@ class DATASET:
     def _loadCameraCalibration(self):
         for cam in self.cameras:
             bin = self.metadata[cam]["BinX_RBV"]
+            if np.isnan(bin):
+                bin = 1.0
             cal = self.metadata[cam]["RESOLUTION"] * bin
             if np.isnan(cal):
                 return
@@ -155,9 +157,8 @@ class DATASET:
         common_index = self.images[camera]["common_index"][ind]
         python_common_index = common_index - 1
         if self.HDF5:
-            image_path = self.images[camera]["loc"]
+            image_path = self.images[camera]["loc"][step - 1]
             filename = os.path.basename(image_path)
-            ind = python_common_index - (step - 1) * self.params["n_shot"]
             return image.HDF5_DAQ(camera, self, filename, ind, step)
         else:
             image_path = self.images[camera]["loc"][python_common_index]
