@@ -748,7 +748,7 @@ class DAQ(IMAGE):
 class HDF5_DAQ(DAQ):
     """An image taken by one of the FACET-II camera and saved as part of an HDF5 dataset."""
 
-    def load_image(self):
+    def _load_image(self):
         """Load an image from a given data set.
 
         Returns
@@ -767,5 +767,5 @@ class HDF5_DAQ(DAQ):
         data = f["entry/data/data"][ind]
         image = Image.fromarray(data)
         data = np.array(image, dtype="float")
-        image = self.orientImage(data)
+        image = self._orientImage(data)
         return image
